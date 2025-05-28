@@ -1,0 +1,10 @@
+.container {
+  font-size: clamp(
+    8rem,
+    30vw,
+    16rem
+  ); /* clamp(primeiro paramentro é o tamanho minimo, segundo é a scala adapitavel, terceiro é o tamanho maximo) */
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.3;
+}
