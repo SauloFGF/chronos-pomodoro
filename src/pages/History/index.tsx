@@ -7,12 +7,50 @@ import styles from './styles.module.css'
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 import { formatDate } from '../../utils/formatDate';
 import { getTaskStatus } from '../../utils/getTaskStatus';
+import { sortTasks, type SortTasksOptions } from '../../utils/sortTasks';
+import { useEffect, useState } from 'react';
+import { TaskActionTypes } from '../../contexts/TaskContext/taskActions';
 
 function History() {
-  const { state } = useTaskContext()
-  const sortedTaks = [...state.tasks].sort((a, b) => {
-    return b.startDate - a.startDate
+  const { state, dispatch } = useTaskContext()
+  const [sortTaskOptions, setSortTaskOptions] = useState<SortTasksOptions>(() => {
+    return {
+      tasks: sortTasks({ tasks: state.tasks }),
+      field: 'startDate',
+      direction: 'desc'
+    }
   })
+
+  useEffect(() => {
+    setSortTaskOptions(prevState => ({
+      ...prevState,
+      tasks: sortTasks({
+        tasks: state.tasks,
+        direction: prevState.direction,
+        field: prevState.field
+      })
+    }))
+  }, [state.tasks])
+
+  function handleSortTasks(props: Omit<SortTasksOptions, 'tasks' | 'direction'>) {
+    const newDirection = sortTaskOptions.direction === 'desc' ? 'asc' : 'desc';
+
+    setSortTaskOptions({
+      tasks: sortTasks({
+        tasks: sortTaskOptions.tasks,
+        field: props.field,
+        direction: newDirection
+      }),
+      direction: newDirection,
+      field: props.field
+    })
+  }
+
+  function handleResetHistory() {
+    if (!confirm('Tem certeza que deseja apagar todo o histórico de tarefas? Esta ação não pode ser desfeita.')) return;
+
+    dispatch({ type: TaskActionTypes.RESET_STATE })
+  }
 
   return (
     <MainTemplate>
@@ -20,9 +58,12 @@ function History() {
         <Heading >
           <span>History</span>
           <span className={styles.buttonContainer}>
-            <DefaultButton icon={<TrashIcon />} color='red'
+            <DefaultButton
+              icon={<TrashIcon />}
+              color='red'
               area-label="Apagar todo o histórico"
-              title='Apagar histórico' />
+              title='Apagar histórico'
+              onClick={handleResetHistory} />
           </span>
         </Heading>
       </Container>
@@ -32,16 +73,16 @@ function History() {
           <table>
             <thead>
               <tr>
-                <th>Tarefa</th>
-                <th>Duração</th>
-                <th>Data</th>
+                <th onClick={() => handleSortTasks({ field: 'name' })} className={styles.thSort}>Tarefa ↕</th>
+                <th onClick={() => handleSortTasks({ field: 'duration' })} className={styles.thSort}>Duração ↕</th>
+                <th onClick={() => handleSortTasks({ field: 'startDate' })} className={styles.thSort}>Data ↕</th>
                 <th>Status</th>
                 <th>Tipo</th>
               </tr>
             </thead>
 
             <tbody>
-              {sortedTaks.map(task => {
+              {sortTaskOptions.tasks.map(task => {
                 const taskTypeDictionary = {
                   workTime: 'Foco',
                   shortBreakTime: 'Descanso curto',
