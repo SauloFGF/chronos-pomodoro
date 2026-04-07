@@ -9,10 +9,12 @@ import { formatDate } from '../../utils/formatDate';
 import { getTaskStatus } from '../../utils/getTaskStatus';
 import { sortTasks, type SortTasksOptions } from '../../utils/sortTasks';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import { showMessage } from '../../adapters/showMessage';
+import { TaskActionTypes } from '../../contexts/TaskContext/taskActions';
 
 function History() {
   const { state, dispatch } = useTaskContext()
+  const [confirmClearHistory, setConfirmClearHistory] = useState(false);
   const hasTasks = state.tasks.length > 0;
 
   const [sortTaskOptions, setSortTaskOptions] = useState<SortTasksOptions>(() => {
@@ -34,6 +36,18 @@ function History() {
     }))
   }, [state.tasks])
 
+  useEffect(() => {
+    if (!confirmClearHistory) return;
+
+    setConfirmClearHistory(false);
+
+    dispatch({ type: TaskActionTypes.RESET_STATE });
+  }, [confirmClearHistory, dispatch])
+
+  useEffect(() => {
+    showMessage.dismiss();
+  }, [])
+
   function handleSortTasks(props: Omit<SortTasksOptions, 'tasks' | 'direction'>) {
     const newDirection = sortTaskOptions.direction === 'desc' ? 'asc' : 'desc';
 
@@ -49,9 +63,10 @@ function History() {
   }
 
   function handleResetHistory() {
-    toast("teste")
-    // if (!confirm('Tem certeza que deseja apagar todo o histórico de tarefas? Esta ação não pode ser desfeita.')) return;
-    // dispatch({ type: TaskActionTypes.RESET_STATE })
+    showMessage.dismiss();
+    showMessage.confirm('Tem certeza que deseja apagar todo o histórico de tarefas?', confimation => {
+      setConfirmClearHistory(confimation);
+    })
   }
 
   return (
