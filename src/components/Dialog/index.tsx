@@ -2,7 +2,7 @@ import type { ToastContentProps } from "react-toastify";
 import { DefaultButton } from "../DefaultButton";
 import { ThumbsDownIcon, ThumbsUpIcon } from "lucide-react";
 
-import styles from './style.module.css'
+import styles from './styles.module.css';
 
 export function Dialog({ closeToast, data }: ToastContentProps<string>) {
     return (
